@@ -2,8 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const session = require("express-session");
-
 const app = express();
+const http = require("http").Server(app);
+const io = require("socket.io")(http);
+
+const Room = require("./models/room");
 
 app.use(
   session({
@@ -37,7 +40,24 @@ app.get("/room", (req, res) => {
   }
 });
 
+io.on("connection", socket => {
+  //Initial rooms
+  Room.find({}, (err, rooms) => {
+    socket.emit("roomList", rooms);
+  });
+  //Add new room
+  socket.on("addRoom", roomName => {
+    console.log("addRoom", roomName);
+    const room = new Room({
+      name: roomName
+    });
+    room.save().then(() => {
+      io.emit("newRoom", room);
+    });
+  });
+});
+
 mongoose.Promise = global.Promise;
 mongoose
   .connect("mongodb://localhost/chat-socketio")
-  .then(() => app.listen(3000, () => console.log("Chat running...")));
+  .then(() => http.listen(3000, () => console.log("Chat running...")));
