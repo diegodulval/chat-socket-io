@@ -55,6 +55,14 @@ io.on("connection", socket => {
       io.emit("newRoom", room);
     });
   });
+
+  socket.on("join", roomId => {
+    socket.join(roomId);
+  });
+
+  socket.on("sendMsg", msg => {
+    console.log(msg);
+  });
 });
 
 mongoose.Promise = global.Promise;
