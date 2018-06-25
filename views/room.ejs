@@ -30,11 +30,7 @@
     </div>
     <div class="room">
       <div class="messages">
-        <div class="message">
-          <span class="author">Diego Dulval</span>
-          <br>
-          <span class="msg-body">Mensagem aqui</span>
-        </div>
+
       </div>
       <div class="new-message-form w-form">
         <form id="email-form" name="email-form" data-name="Email Form" class="form">
@@ -73,6 +69,13 @@
       })
 
       $('.room-list').on('click', '.room-item', function () {
+
+
+        $(".room-item").each(function () {
+          $(this).css("background-color", "#f4f4f4");
+        });
+
+        $(this).css("background-color", "#3898ec");
         const roomId = $(this).attr('data-id');
         socket.emit('join', roomId);
         selectedRoom = roomId;
@@ -80,6 +83,16 @@
 
       const addRoom = (id, roomName) => {
         $('.room-list').append(`<li data-id="${id}" class="room-item">${roomName}</li>`)
+      }
+
+      const addMsg = (data) => {
+        const html =
+          ` <div class="message">
+            <span class="author">${data.author}</span><br>
+            <span class="msg-body">${data.message}</span>
+          </div>`
+
+        $('.messages').append(html)
       }
 
       socket.on('newRoom', room => {
@@ -91,7 +104,19 @@
         rooms.map(room => {
           addRoom(room._id, room.name)
         })
-        console.log(rooms);
+      })
+
+      socket.on('newMsg', msg => {
+        if (selectedRoom === msg.room) {
+          addMsg(msg);
+        } else {
+          // update count unread msg
+        }
+      })
+
+      socket.on('msgsList', msgs => {
+        $('.messages').html('');
+        msgs.map(addMsg);
       })
 
       $('.add-room').click(function () {
