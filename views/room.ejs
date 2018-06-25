@@ -60,15 +60,36 @@
   <script>
     $(function () {
       const socket = io();
+      let selectedRoom = '';
+
+      $('.msg').keyup(function (key) {
+        if (selectedRoom !== "" && key.keyCode === 13) {
+          socket.emit('sendMsg', {
+            msg: $('.msg').val(),
+            room: selectedRoom
+          });
+          $('.msg').val('');
+        }
+      })
+
+      $('.room-list').on('click', '.room-item', function () {
+        const roomId = $(this).attr('data-id');
+        socket.emit('join', roomId);
+        selectedRoom = roomId;
+      })
+
+      const addRoom = (id, roomName) => {
+        $('.room-list').append(`<li data-id="${id}" class="room-item">${roomName}</li>`)
+      }
 
       socket.on('newRoom', room => {
-        console.log(room);
+        addRoom(room._id, room.name)
       })
 
       socket.on('roomList', rooms => {
         $('.room-list').html('');
         rooms.map(room => {
-          $('.room-list').append(`<li class="room-item">${room.name}</li>`)
+          addRoom(room._id, room.name)
         })
         console.log(rooms);
       })
